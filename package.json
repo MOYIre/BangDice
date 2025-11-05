@@ -1,0 +1,9 @@
+{
+  "name": "BangDice",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "ws": "^8.17.0"
+  }
+}
