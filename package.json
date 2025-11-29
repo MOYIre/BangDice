@@ -1,7 +1,22 @@
 {
-  "name": "BangDice",
+  "name": "bangdice",
   "version": "1.0.0",
+  "description": "<img src=\"https://anime.bang-dream.com/avemujica/wordpress/wp-content/uploads/2024/12/13132640/AM_wallpaper_PC3.jpg\" width=\"260\"/>",
+  "homepage": "https://github.com/MOYIre/BangDice#readme",
+  "bugs": {
+    "url": "https://github.com/MOYIre/BangDice/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MOYIre/BangDice.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "js-yaml": "^4.1.0",
     "ws": "^8.17.0"
