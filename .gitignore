@@ -6,3 +6,5 @@ logs/
 build/*
 !build/铭茗编译助手.sh
 !build/铭茗编译助手.bat
+
+old/
