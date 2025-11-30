@@ -1,6 +1,7 @@
 // 无缝兼容插件，现已支持: sealdice
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "node:url";   // ★ 修复：载入绝对路径需要 URL
 import seal, { extList } from "./seal-shim.js";
 
 globalThis.seal = seal;
@@ -18,7 +19,11 @@ export default function loadPlugins(bot, send, ws) {
     for (const file of files) {
       try {
         const full = path.join(dir, file);
-        await import(full + "?t=" + Date.now());
+
+        // ★ 修复：Windows 必须转换为 file:// URL
+        const url = pathToFileURL(full).href + "?t=" + Date.now();
+        await import(url);
+
         const ext = extList[extList.length - 1];
         if (!ext || !ext.cmdMap) continue;
 
@@ -42,10 +47,10 @@ export default function loadPlugins(bot, send, ws) {
     if (typeof text !== "string") return false;
     if (!text.startsWith(".")) return false;
 
-    const stripped = text.slice(1).trim(); // 去掉点号和前后空格
+    const stripped = text.slice(1).trim();
     for (const ext of extList) {
       for (const key of Object.keys(ext.cmdMap || {})) {
-        if (stripped.startsWith(key)) { // 命令名匹配开头即可
+        if (stripped.startsWith(key)) {
           const cmd = ext.cmdMap[key];
           const argv = { args: stripped.slice(key.length).trim().split(/\s+/) };
           const ctx = {
@@ -54,7 +59,7 @@ export default function loadPlugins(bot, send, ws) {
             user_id: e.user_id,
             msg: e
           };
-          try { return cmd.solve(ctx, e, argv) !== false; } 
+          try { return cmd.solve(ctx, e, argv) !== false; }
           catch (err) { console.error("插件执行错误:", key, err); return false; }
         }
       }

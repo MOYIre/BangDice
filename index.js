@@ -56,14 +56,35 @@ ws.on("message", raw => {
   text = text.replace(/^\.([a-zA-Z])(\d)/, ".$1 $2");
   text = text.replace(/^\.([^\s]+)/, (m,a)=>"." + a.toLowerCase());
 
-  if (text.startsWith(".help")) {
-    const name = text.slice(5).trim();
-    if (name) sendGroupMsg(ws, e.group_id, bot.getPluginHelp(name));
-    else sendGroupMsg(ws, e.group_id,
-`===== 铭茗插件加载器 =====
-${pluginCmdTable.map(p => p.names.join("/")).join("、")}`);
-    return;
+if (text.startsWith(".help")) {
+  const name = text.slice(5).trim();
+  if (name) {
+    sendGroupMsg(ws, e.group_id, bot.getPluginHelp(name));
+  } else {
+    // 计算最长命令名宽度（兼容中文）
+    const getMaxWidth = (str) => [...str].length;
+    const maxCmdWidth = Math.max(...pluginCmdTable.map(p => getMaxWidth(p.names.join("/"))));
+    
+    // 生成命令行（居左对齐，保留足够间距）
+    const cmdLines = pluginCmdTable.map(p => {
+      const cmd = p.names.join("/");
+      return `🜲 ${cmd}`;
+    });
+
+    // 组合最终输出
+    const helpText = [
+      `          ✨  Bangdice 过载核心  ✨`,
+      "────────────────",
+      ...cmdLines,
+      "────────────────",
+      "🜲 输入 .help <指令> 揭开细节"
+    ].join("\n");
+    
+    sendGroupMsg(ws, e.group_id, helpText);
   }
+  return;
+}
+
 
   if (bot.dispatchPlugin(text, e, ws, sendGroupMsg)) return;
 });
