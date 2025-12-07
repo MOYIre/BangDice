@@ -5,22 +5,13 @@
 **BangDice** 是一个面向跑团玩家的 **COC7 骰娘 / 探索型 Bot**。  
 主题为 **BanG Dream!** 系列中的 **Morfonica（モルフォニカ / Mujica）** 风格
 
-当前版本核心功能集中在 **COC7 规则**，可进行人物作成、属性管理、检定、技能检定与纯骰。
+TODO: 添加更多功能
 
-## 功能列表
+## TODO
 
-| 指令 | 说明 | 示例 |
-|---|---|---|
-| `.cocN` | 生成 N 组人物卡（无空格输入） | `.coc3` |
-| `.nn昵称` | 绑定角色名 | `.nn白鹭千聖` |
-| `.st力量80` | 设置属性数值 | `.st敏捷75` |
-| `.ra力量` | 对属性发起检定 | `.ra体质` |
-| `.rt图书馆+10` | 技能检定（支持加值） | `.rt侦查+20` |
-| `.r表达式` | 常规骰点 | `.r1d100` |
-| `.show` | 查看当前角色属性 | `.show` |
-
-> 所有指令 **指令与参数之间不需要空格**  
-> 例：` .ra力量 ` ✅ / ` .ra 力量 ` ✅
+- 添加COC7规则支持
+- 实现人物作成、属性管理、检定、技能检定与纯骰功能
+- 完善更多指令和功能
 
 ## 部署方式
 
@@ -39,17 +30,31 @@ node index.js
 
 ```
 BangDice/
-├─ data/
-│  ├─ dice.js
-│  └─ coc.js
+├─ src/
+│  ├─ core/
+│  │  ├─ index.js
+│  │  ├─ coc.js
+│  │  ├─ dice.js
+│  │  ├─ plugin-loader.js
+│  │  └─ seal-shim.js
+│  ├─ utils/
+│  │  └─ templates.js
+│  └─ web/
+│     ├─ index.html
+│     ├─ style.css
+│     ├─ script.js
+│     ├─ favicon.ico
+│     └─ favicon.svg
 ├─ roles/
-│  └─ players.json
 ├─ logs/
-│  └─ YYYY-MM-DD.log
-├─ index.js
 ├─ config.json
+├─ package.json
 └─ README.md
 ```
+
+## WebUI 管理界面
+
+BangDice 提供了一个现代化的 WebUI 管理界面，可通过浏览器访问。界面具有 BanG Dream! 风格设计，启动后访问 `http://localhost:4412` 即可使用。
 
 ## 自定义扩展
 

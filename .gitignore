@@ -1,6 +1,5 @@
 config.js
 config.json
-roles/
 logs/
 
 build/*
@@ -8,3 +7,9 @@ build/*
 !build/铭茗编译助手.bat
 
 old/
+
+IFLOW.md
+iflow-src/
+
+roles/
+!roles/Plugins/运势.js

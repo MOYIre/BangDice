@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BangDice - Morfonica Style</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    :root {
+      --primary-color: #8765B3;
+      --secondary-color: #FF7EB3;
+      --accent-color: #FFC84D;
+      --bg-color: #f8f9ff;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text-color: #333;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 20px rgba(135, 101, 179, 0.15);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e6f7ff 100%);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+      background-attachment: fixed;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* BangDream 风格头部 */
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      letter-spacing: 1px;
+    }
+
+    .header-subtitle {
+      color: var(--secondary-color);
+      font-size: 1.2rem;
+      opacity: 0.8;
+    }
+
+    /* BangDream 风格卡片 */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: var(--box-shadow);
+      border: 1px solid rgba(135, 101, 179, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--secondary-color);
+      display: flex;
+      align-items: center;
+    }
+
+    .card-title i {
+      margin-right: 10px;
+      font-size: 1.6rem;
+    }
+
+    /* 响应式网格布局 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    /* BangDream 风格按钮 */
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 4px 15px rgba(135, 101, 179, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(135, 101, 179, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    /* BangDream 风格表单 */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid rgba(135, 101, 179, 0.2);
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: border-color 0.3s;
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(135, 101, 179, 0.2);
+    }
+
+    /* 插件卡片 */
+    .plugin-card {
+      border: 1px solid rgba(135, 101, 179, 0.2);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      background: var(--card-bg);
+    }
+
+    .plugin-card:hover {
+      box-shadow: 0 6px 15px rgba(135, 101, 179, 0.2);
+      border-color: var(--secondary-color);
+    }
+
+    .plugin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .plugin-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .plugin-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: rgba(72, 187, 120, 0.2);
+      color: #2f7d32;
+    }
+
+    .status-inactive {
+      background: rgba(245, 101, 101, 0.2);
+      color: #b42318;
+    }
+
+    .plugin-description {
+      color: #666;
+      margin: 10px 0;
+    }
+
+    .plugin-actions {
+      text-align: right;
+      margin-top: 15px;
+    }
+
+    /* 日志区域 */
+    .logs-container {
+      max-height: 400px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.03);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      border: 1px solid rgba(135, 101, 179, 0.1);
+    }
+
+    .log-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .log-timestamp {
+      color: #888;
+      font-size: 0.8rem;
+      margin-right: 10px;
+    }
+
+    .log-info {
+      color: var(--primary-color);
+    }
+
+    .log-error {
+      color: #e53e3e;
+    }
+
+    .log-success {
+      color: #38a169;
+    }
+
+    /* 连接状态指示器 */
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.connected {
+      background-color: #48BB78;
+      box-shadow: 0 0 10px #48BB78;
+    }
+
+    .status-dot.disconnected {
+      background-color: #E53E3E;
+    }
+
+    /* 选项卡导航 */
+    .tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 5px;
+      margin-bottom: 10px;
+      margin-top: -15px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      background: rgba(135, 101, 179, 0.1);
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+    }
+
+    .tab-content {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        overflow-x: auto;
+        justify-content: flex-start;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .plugin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .plugin-actions {
+        width: 100%;
+        text-align: left;
+      }
+
+      .btn {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+
+    /* 动画效果 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-enter-active, .fade-leave-active {
+      transition: opacity 0.3s;
+    }
+
+    .fade-enter-from, .fade-leave-to {
+      opacity: 0;
+    }
+
+    /* BangDream 风格装饰 */
+    .bangdream-decoration {
+      position: fixed;
+      opacity: 0.05;
+      z-index: -1;
+      font-size: 10rem;
+      pointer-events: none;
+    }
+
+    .decoration-1 {
+      top: 10%;
+      left: 5%;
+      transform: rotate(-15deg);
+    }
+
+    .decoration-2 {
+      bottom: 10%;
+      right: 5%;
+      transform: rotate(15deg);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- BangDream 风格装饰元素 -->
+    <div class="bangdream-decoration decoration-1">🎲</div>
+    <div class="bangdream-decoration decoration-2">🎵</div>
+
+    <div class="container">
+      <!-- 头部 -->
+      <div class="header">
+        <h1>✨ BangDice ✨</h1>
+      </div>
+
+      <!-- 选项卡导航 -->
+      <div class="tabs">
+        <button class="tab-button" 
+                :class="{ active: activeTab === 'dashboard' }" 
+                @click="activeTab = 'dashboard'">控制台</button>
+        <button class="tab-button" 
+                :class="{ active: activeTab === 'plugins' }" 
+                @click="activeTab = 'plugins'">插件管理</button>
+        <button class="tab-button" 
+                :class="{ active: activeTab === 'config' }" 
+                @click="activeTab = 'config'">配置</button>
+        <button class="tab-button" 
+                :class="{ active: activeTab === 'logs' }" 
+                @click="activeTab = 'logs'">日志</button>
+      </div>
+
+      <!-- 控制台选项卡 -->
+      <div v-show="activeTab === 'dashboard'" class="tab-content">
+        <div class="grid">
+          <div class="card">
+            <h3 class="card-title">连接状态</h3>
+            <div class="status-indicator">
+              <span class="status-dot" :class="connectionStatus ? 'connected' : 'disconnected'"></span>
+              <span>{{ connectionStatus ? '已连接' : '未连接' }}</span>
+            </div>
+            <p style="margin-top: 15px;">WebSocket: {{ config.wsUrl }}</p>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">服务器信息</h3>
+            <p>活跃群组: {{ stats.activeGroups }}</p>
+            <p>活跃插件: {{ stats.activePlugins }}</p>
+            <p>消息计数: {{ stats.messageCount }}</p>
+          </div>
+        </div>
+
+        
+      </div>
+
+      <!-- 插件管理选项卡 -->
+      <div v-show="activeTab === 'plugins'" class="tab-content">
+        <div class="card">
+          <h3 class="card-title">插件管理</h3>
+          <div v-for="plugin in plugins" :key="plugin.name" class="plugin-card">
+            <div class="plugin-header">
+              <div class="plugin-name">{{ plugin.name }}</div>
+              <div class="plugin-status" :class="plugin.enabled ? 'status-active' : 'status-inactive'">
+                {{ plugin.enabled ? '已启用' : '已禁用' }}
+              </div>
+            </div>
+            <div class="plugin-author">作者: {{ plugin.author }}</div>
+            <div class="plugin-description" :title="plugin.description" style="cursor: pointer; max-height: 4rem; overflow: hidden;" @click="toggleDescription($event, plugin.description)">
+              {{ plugin.description && plugin.description.length > 80 ? plugin.description.substring(0, 80) + '...' : plugin.description }}
+            </div>
+            <div class="plugin-actions">
+              <button v-if="plugin.enabled" @click="togglePlugin(plugin.name, false)" class="btn btn-outline" style="background: #ffe0e0; color: #c53030; border-color: #c53030;">
+                禁用
+              </button>
+              <button v-else @click="togglePlugin(plugin.name, true)" class="btn" style="background: #e0ffe0; color: #2f7d32;">
+                启用
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 配置选项卡 -->
+      <div v-show="activeTab === 'config'" class="tab-content">
+        <div class="card">
+          <h3 class="card-title">服务器配置</h3>
+          <div class="form-group">
+            <label for="wsUrl">WebSocket 地址</label>
+            <input type="text" id="wsUrl" v-model="config.wsUrl" class="form-control" placeholder="ws://127.0.0.1:3001">
+          </div>
+          <div class="form-group">
+            <label for="accessToken">Access Token (可选)</label>
+            <input type="password" id="accessToken" v-model="config.accessToken" class="form-control">
+          </div>
+                      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button @click="saveConfig" class="btn">保存配置</button>
+            <button @click="applyOnebotConfig" class="btn">应用OneBot配置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日志选项卡 -->
+      <div v-show="activeTab === 'logs'" class="tab-content">
+        <div class="card">
+          <h3 class="card-title">系统日志</h3>
+          <div class="logs-container">
+            <div v-for="log in logs" :key="log.id" class="log-item" :class="'log-' + log.type">
+              <span class="log-timestamp">[{{ log.timestamp }}]</span>
+              {{ log.message }}
+            </div>
+          </div>
+          <div style="margin-top: 15px;">
+            <button @click="clearLogs" class="btn btn-outline">清空日志</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const { createApp, ref, onMounted } = Vue;
+
+      createApp({
+        setup() {
+          // 响应式数据
+          const activeTab = ref('dashboard');
+          const connectionStatus = ref(false);
+          const config = ref({
+            wsUrl: 'ws://127.0.0.1:3001',
+            accessToken: ''
+          });
+          const stats = ref({
+            activeGroups: 0,
+            activePlugins: 0,
+            messageCount: 0
+          });
+          const plugins = ref([]);
+          // 本地插件状态覆盖，用于在后端未更新时保持用户操作的状态
+          const localPluginStatus = ref(new Map());
+          const logs = ref([]);
+
+          // Socket.IO 连接
+          let socket = null;
+
+          // 添加日志
+          const addLog = (message, type = 'info') => {
+            const timestamp = new Date().toLocaleString();
+            logs.value.unshift({ id: Date.now(), timestamp, message, type });
+            // 只保留最近100条日志
+            if (logs.value.length > 100) {
+              logs.value = logs.value.slice(0, 100);
+            }
+          };
+
+          // 连接服务器
+          const connectToServer = () => {
+            // 使用Socket.IO连接到BangDice后端
+            // 这里应该连接到当前页面的服务器，而不是用户输入的wsUrl
+            socket = io({
+              auth: {
+                token: config.value.accessToken
+              },
+              transports: ['websocket']
+            });
+
+            socket.on('connect', () => {
+              connectionStatus.value = true;
+              addLog('已连接到 BangDice WebUI 服务器', 'success');
+              // 请求初始数据
+              socket.emit('get_config');
+              socket.emit('get_plugins');
+              // 定期获取状态更新
+              setInterval(() => {
+                socket.emit('get_config'); // 更新配置
+              }, 5000); // 每5秒更新一次配置信息
+            });
+
+            socket.on('disconnect', () => {
+              connectionStatus.value = false;
+              addLog('与 BangDice 服务器断开连接', 'error');
+            });
+
+            socket.on('connect_error', (error) => {
+              connectionStatus.value = false;
+              addLog('连接 BangDice WebUI 服务器失败: ' + error.message, 'error');
+            });
+
+            // 监听状态更新
+            socket.on('status_update', (data) => {
+              // 更新连接状态
+              if (data.connected !== undefined) {
+                connectionStatus.value = data.connected === true;
+              }
+              
+              // 更新统计信息 - 使用合并方式，而不是替换整个对象
+              if (data.activeGroups !== undefined) {
+                stats.value.activeGroups = data.activeGroups;
+              }
+              if (data.activePlugins !== undefined) {
+                stats.value.activePlugins = data.activePlugins;
+              }
+              if (data.messageCount !== undefined) {
+                stats.value.messageCount = data.messageCount;
+              }
+              
+              // 保存最后的状态到本地存储
+              const lastStats = {
+                activeGroups: stats.value.activeGroups,
+                activePlugins: stats.value.activePlugins,
+                messageCount: stats.value.messageCount
+              };
+              localStorage.setItem('bangdice_last_stats', JSON.stringify(lastStats));
+            });
+            
+            // 监听OneBot状态更新
+            socket.on('onebot_status_update', (data) => {
+              if (data.connected !== undefined) {
+                connectionStatus.value = data.connected === true;
+              }
+            });
+            
+            // 监听插件列表
+            socket.on('plugins_list', (pluginList) => {
+              console.log('Received plugins:', pluginList); // 调试日志
+              addLog(`收到插件列表: ${pluginList.length} 个插件`, 'info');
+              
+              if (!pluginList || pluginList.length === 0) {
+                // 如果没有插件，添加一个提示
+                plugins.value = [{
+                  name: '无插件',
+                  command: '',
+                  description: '没有找到任何插件',
+                  author: '系统',
+                  enabled: true
+                }];
+              } else {
+                plugins.value = pluginList.map(p => {
+                  // 检查是否有本地状态覆盖
+                  const localStatus = localPluginStatus.value.get(p.name);
+                  const effectiveEnabled = localStatus !== undefined ? localStatus : (p.enabled !== undefined ? p.enabled : true);
+                  
+                  return {
+                    name: p.name,
+                    command: p.command,
+                    description: p.description || '暂无描述',
+                    author: p.author || '未知',
+                    enabled: effectiveEnabled
+                  };
+                });
+              }
+            });
+            
+            // 监听配置更新
+            socket.on('config_update', (data) => {
+              config.value.wsUrl = data.wsUrl || config.value.wsUrl;
+              config.value.accessToken = data.accessToken || config.value.accessToken;
+            });
+          };
+
+          // 断开连接
+          const disconnectServer = () => {
+            if (socket) {
+              socket.disconnect();
+              socket = null;
+              connectionStatus.value = false;
+            }
+          };
+
+          // 保存配置
+          const saveConfig = () => {
+            if (socket) {
+              socket.emit('update_config', {
+                wsUrl: config.value.wsUrl,
+                accessToken: config.value.accessToken
+              });
+              // 同时保存到本地存储
+              localStorage.setItem('bangdice_config', JSON.stringify(config.value));
+              addLog('配置已发送到服务器并保存到本地', 'success');
+            } else {
+              // 即使没有连接到服务器，也保存到本地
+              localStorage.setItem('bangdice_config', JSON.stringify(config.value));
+              addLog('配置已保存到本地', 'success');
+            }
+          };
+          
+          // 应用OneBot配置
+          const applyOnebotConfig = () => {
+            if (socket) {
+              socket.emit('connect_onebot', {
+                wsUrl: config.value.wsUrl,
+                accessToken: config.value.accessToken
+              });
+              addLog('OneBot配置已应用', 'success');
+            } else {
+              addLog('请先连接到服务器', 'error');
+            }
+          };
+
+          // 切换插件状态
+          const togglePlugin = (pluginName, enable) => {
+            if (socket) {
+              // 同时发送 socket 事件和 API 请求以确保状态更新
+              socket.emit('plugin_action', {
+                plugin: pluginName,
+                action: enable ? 'enable' : 'disable'
+              });
+              
+              // 通过 fetch API 发送插件状态变更请求
+              fetch('/api/plugins', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  plugin: pluginName,
+                  action: enable ? 'enable' : 'disable'
+                })
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  addLog(`${pluginName} 状态已更新: ${enable ? '启用' : '禁用'}`, 'success');
+                } else {
+                  addLog(`更新 ${pluginName} 状态失败: ${data.error || '未知错误'}`, 'error');
+                }
+              })
+              .catch(error => {
+                addLog(`更新插件状态时发生错误: ${error.message}`, 'error');
+              });
+              
+              addLog(`${pluginName} 状态变更请求已发送`, 'info');
+              
+              // 记录本地状态变更
+              localPluginStatus.value.set(pluginName, enable);
+              
+              // 立即更新本地插件状态以提供即时反馈
+              const plugin = plugins.value.find(p => p.name === pluginName);
+              if (plugin) {
+                plugin.enabled = enable;
+              }
+              
+              // 请求更新插件列表以同步后端状态
+              setTimeout(() => {
+                socket.emit('get_plugins');
+              }, 1000); // 稍等片刻让后端处理
+            } else {
+              addLog('请先连接到服务器', 'error');
+            }
+          };
+
+          
+
+          // 展开/折叠描述
+          const toggleDescription = (event, fullDescription) => {
+            // 为了简单起见，这里可以实现点击展开功能
+            // 当前实现为点击时在控制台输出完整描述
+            console.log('完整描述:', fullDescription);
+            // 可以在这里实现展开/折叠逻辑
+          };
+          
+          // 清空日志
+          const clearLogs = () => {
+            logs.value = [];
+            addLog('日志已清空', 'info');
+          };
+
+          // 页面加载时恢复配置并自动连接
+          onMounted(() => {
+            const savedConfig = localStorage.getItem('bangdice_config');
+            if (savedConfig) {
+              try {
+                config.value = JSON.parse(savedConfig);
+              } catch (e) {
+                console.error('恢复配置失败:', e);
+                addLog('配置恢复失败，使用默认值', 'error');
+              }
+            }
+            
+            // 恢复最后的统计信息
+            const lastStats = localStorage.getItem('bangdice_last_stats');
+            if (lastStats) {
+              try {
+                const parsedStats = JSON.parse(lastStats);
+                stats.value.activeGroups = parsedStats.activeGroups || 0;
+                stats.value.activePlugins = parsedStats.activePlugins || 0;
+                stats.value.messageCount = parsedStats.messageCount || 0;
+              } catch (e) {
+                console.error('恢复统计信息失败:', e);
+              }
+            }
+
+            // 添加初始日志
+            addLog('BangDice 管理界面已启动', 'success');
+            
+            // 自动连接到服务器
+            connectToServer();
+          });
+
+          return {
+            activeTab,
+            connectionStatus,
+            config,
+            stats,
+            plugins,
+            logs,
+            connectToServer,
+            disconnectServer,
+            saveConfig,
+            applyOnebotConfig,
+            togglePlugin,
+            toggleDescription,
+            clearLogs,
+            addLog
+          };
+        }
+      }).mount('#app');
+    </script>
+  </div>
+</body>
+</html>

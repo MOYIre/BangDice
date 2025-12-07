@@ -6,14 +6,27 @@ import seal, { extList } from "./seal-shim.js";
 
 globalThis.seal = seal;
 export const pluginCmdTable = [];
+export const pluginStatus = new Map(); // 用于跟踪插件启用/禁用状态
 
 export default function loadPlugins(bot, send, ws) {
   const dir = path.join(process.cwd(), "roles", "Plugins");
   if (!fs.existsSync(dir)) return;
 
+  // 初始化插件状态 - 默认所有插件都启用
+  function initPluginStatus() {
+    const files = fs.readdirSync(dir).filter(f => f.endsWith(".js"));
+    for (const file of files) {
+      const pluginName = path.basename(file, '.js');
+      pluginStatus.set(pluginName, true); // 默认启用
+    }
+  }
+
   async function loadAll() {
     pluginCmdTable.length = 0;
     extList.length = 0;
+    
+    // 重置命令到插件映射
+    globalThis.commandToPluginMap = new Map();
 
     const files = fs.readdirSync(dir).filter(f => f.endsWith(".js"));
     for (const file of files) {
@@ -33,13 +46,30 @@ export default function loadPlugins(bot, send, ws) {
           const c = ext.cmdMap[n];
           if (c && c.help) { help = c.help.trim(); break; }
         }
-        pluginCmdTable.push({ names, help });
+        
+        const pluginName = path.basename(file, '.js');
+        // 设置插件文件名到扩展对象，以便dispatchPlugin可以使用
+        ext.pluginFile = pluginName;
+        
+        // 添加命令到插件文件名的映射
+        for (const name of names) {
+          globalThis.commandToPluginMap.set(name, pluginName);
+        }
+        
+        // 同时在pluginStatus中初始化插件状态（如果尚未初始化）
+        if (!pluginStatus.has(pluginName)) {
+          pluginStatus.set(pluginName, true); // 默认启用
+        }
+        
+        pluginCmdTable.push({ names, help, file: pluginName });
       } catch (err) {
         console.error("插件加载失败:", file, err);
       }
     }
   }
 
+  // 初始化插件状态
+  initPluginStatus();
   loadAll();
   fs.watch(dir, { recursive: false }, () => loadAll());
 
@@ -51,6 +81,13 @@ export default function loadPlugins(bot, send, ws) {
     for (const ext of extList) {
       for (const key of Object.keys(ext.cmdMap || {})) {
         if (stripped.startsWith(key)) {
+          // 检查插件是否被禁用
+          // 基于插件文件名来判断插件状态
+          const pluginFile = ext.pluginFile || ext.name || 'unknown'; // 优先使用pluginFile，否则用name
+          if (pluginStatus.has(pluginFile) && !pluginStatus.get(pluginFile)) {
+            continue; // 插件被禁用，跳过此插件，尝试下一个
+          }
+          
           const cmd = ext.cmdMap[key];
           const argv = { args: stripped.slice(key.length).trim().split(/\s+/) };
           const ctx = {
@@ -59,8 +96,17 @@ export default function loadPlugins(bot, send, ws) {
             user_id: e.user_id,
             msg: e
           };
-          try { return cmd.solve(ctx, e, argv) !== false; }
-          catch (err) { console.error("插件执行错误:", key, err); return false; }
+          try { 
+            const result = cmd.solve(ctx, e, argv);
+            // 如果命令被处理（solve函数返回的不是false），返回true
+            if (result !== false) {
+              return true;
+            }
+          }
+          catch (err) { 
+            console.error("插件执行错误:", key, err.message || err); 
+            console.error("错误堆栈:", err.stack);
+          }
         }
       }
     }
