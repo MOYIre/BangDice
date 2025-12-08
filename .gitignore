@@ -1,15 +1,45 @@
+# 配置文件
 config.js
 config.json
-logs/
+test-config.json
 
+# 日志文件
+logs/
+*.log
+
+# 用户数据文件
+roles/players.json
+
+# 插件存储数据（排除，但保留插件代码）
+roles/Plugins/storage/
+src/roles/Plugins/storage/
+
+# 测试同步目录
+test-sync/
+
+# 构建产物
 build/*
 !build/铭茗编译助手.sh
 !build/铭茗编译助手.bat
 
+# 临时/旧文件
 old/
 
+# IFLOW
 IFLOW.md
 iflow-src/
 
-roles/
-!roles/Plugins/运势.js
+# 插件（只排除数据文件，保留插件代码）
+roles/Plugins/storage/
+!roles/Plugins/*.js
+!roles/Plugins/*.ts
+!roles/Plugins/*.py
+!roles/Plugins/*.json
+!roles/Plugins/*.yaml
+!roles/Plugins/*.yml
+!roles/Plugins/**/*.js
+!roles/Plugins/**/*.ts
+!roles/Plugins/**/*.py
+!roles/Plugins/**/*.json
+!roles/Plugins/**/*.yaml
+!roles/Plugins/**/*.yml

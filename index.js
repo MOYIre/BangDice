@@ -18,13 +18,23 @@ let activeGroups = new Set();
 let messageCounter = 0;
 let playerData = {};
 
-function log(msg) {
+// 修改日志函数，将日志发送到WebUI
+function log(msg, type = 'info') {
   const time = new Date();
   const stamp = time.toISOString().replace("T", " ").split(".")[0];
   const day = time.toISOString().split("T")[0];
   const line = `[${stamp}] ${msg}`;
   console.log(line);
   try { fs.appendFileSync(path.join(logDir, `${day}.log`), line + "\n", "utf8"); } catch {}
+  
+  // 如果ioRef存在，发送日志到WebUI
+  if (ioRef) {
+    ioRef.emit('log_message', {
+      timestamp: time.toLocaleString(),
+      message: msg,
+      type: type
+    });
+  }
 }
 
 const configPath = path.join(process.cwd(), "config.json");
@@ -354,8 +364,43 @@ function startServer(port) {
       });
       
       // 插件操作
+      // 插件操作
       socket.on('plugin_action', (data) => {
         log(`插件操作: ${data.action} ${data.plugin}`);
+      });
+      
+      // 获取历史日志
+      socket.on('get_logs', () => {
+        // 读取最近的日志文件并发送给客户端
+        try {
+          const logFiles = fs.readdirSync(logDir).filter(f => f.endsWith('.log')).sort().reverse();
+          if (logFiles.length > 0) {
+            const latestLogFile = logFiles[0]; // 获取最新的日志文件
+            const logContent = fs.readFileSync(path.join(logDir, latestLogFile), 'utf8');
+            const logLines = logContent.split('\n').filter(line => line.trim() !== '').slice(-50); // 获取最后50行
+            
+            logLines.forEach(line => {
+              if (line.trim() !== '') {
+                // 解析日志行 [timestamp] message
+                const match = line.match(/^\[([^\]]+)\]\s+(.*)/);
+                if (match) {
+                  const timestamp = match[1];
+                  const message = match[2];
+                  const type = message.includes('错误') || message.includes('error') || message.includes('fail') ? 'error' : 
+                              message.includes('成功') || message.includes('success') || message.includes('connect') ? 'success' : 'info';
+                  
+                  socket.emit('log_message', {
+                    timestamp: timestamp,
+                    message: message,
+                    type: type
+                  });
+                }
+              }
+            });
+          }
+        } catch (error) {
+          log(`读取历史日志失败: ${error.message}`, 'error');
+        }
       });
       
       socket.on('disconnect', () => {

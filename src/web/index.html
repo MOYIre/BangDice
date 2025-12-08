@@ -528,9 +528,9 @@
           let socket = null;
 
           // 添加日志
-          const addLog = (message, type = 'info') => {
-            const timestamp = new Date().toLocaleString();
-            logs.value.unshift({ id: Date.now(), timestamp, message, type });
+          const addLog = (message, type = 'info', timestamp = null) => {
+            const logTimestamp = timestamp || new Date().toLocaleString();
+            logs.value.unshift({ id: Date.now(), timestamp: logTimestamp, message, type });
             // 只保留最近100条日志
             if (logs.value.length > 100) {
               logs.value = logs.value.slice(0, 100);
@@ -640,6 +640,14 @@
               config.value.wsUrl = data.wsUrl || config.value.wsUrl;
               config.value.accessToken = data.accessToken || config.value.accessToken;
             });
+            
+            // 监听日志消息
+            socket.on('log_message', (data) => {
+              addLog(data.message, data.type, data.timestamp);
+            });
+            
+            // 请求历史日志
+            socket.emit('get_logs');
           };
 
           // 断开连接
