@@ -1,71 +1,117 @@
 # BangDice
 
-<img src="https://anime.bang-dream.com/avemujica/wordpress/wp-content/uploads/2024/12/13132640/AM_wallpaper_PC3.jpg" width="260"/>
+BangDice 是一个面向跑团玩家的 **COC7 骰娘 / 探索型 Bot**，主题为 BanG Dream! 系列中的 Morfonica（モルフォニカ / Mujica）风格。该项目专注于 COC7 规则，支持人物作成、属性管理、检定、技能检定与纯骰功能。
 
-**BangDice** 是一个面向跑团玩家的 **COC7 骰娘 / 探索型 Bot**。  
-主题为 **BanG Dream!** 系列中的 **Morfonica（モルフォニカ / Mujica）** 风格
+## 功能特色
 
-TODO: 添加更多功能
+- **COC7 规则支持**：完整的克苏鲁的呼唤第七版规则支持
+- **属性管理**：支持设置和管理角色的各种属性
+- **多样化检定**：支持普通、困难、极难、大成功等不同难度检定
+- **跑团记录**：完整的跑团日志记录系统
+- **扩展功能**：理智检定、对抗检定、疯狂症状抽取等
+- **模板系统**：BangDream风格的回复模板
+- **属性别名**：支持多种属性名称别名
 
-## TODO
+## 核心命令
 
-- 添加COC7规则支持
-- 实现人物作成、属性管理、检定、技能检定与纯骰功能
-- 完善更多指令和功能
+### 基础命令
+- `.cocN` - 生成 N 组人物卡
+- `.nn昵称` - 绑定角色名
+- `.st力量80` - 设置属性数值
+- `.ra力量` - 对属性发起检定
+- `.ra困难力量` - 困难检定
+- `.ra极难力量` - 极难检定
+- `.ra大成功力量` - 大成功检定（只在骰出1时成功）
+- `.ra图书馆+10` - 技能检定（支持加值）
+- `.r表达式` - 常规骰点
+- `.show` - 查看当前角色属性
+- `.stshow` - 显示角色属性
 
-## 部署方式
+### COC扩展命令
+- `.setcoc [规则号]` - 设置房规（0-5号规则及Delta Green）
+- `.rav [技能] @某人` - 对抗检定
+- `.sc [成功损失]/[失败损失]` - 理智检定
+- `.ti` - 临时性疯狂症状
+- `.li` - 总结性疯狂症状
+- `.log [操作]` - 跑团日志管理
 
-首次运行自动配置：
+## 属性别名支持
 
-```
-node index.js
-```
+系统支持多种属性名称别名，例如：
+- 运气/运势/运气 ↔ 幸运
+- str/STR ↔ 力量
+- con/CON ↔ 体质
+- siz/SIZ ↔ 体型
+- dex/DEX ↔ 敏捷
+- app/APP ↔ 外貌
+- int/INT ↔ 智力
+- pow/POW ↔ 意志
+- edu/EDU ↔ 教育
+- san/SAN ↔ 理智
+- hp/HP ↔ 生命值
 
-## 运行依赖
+## 模板系统
 
-- Node.js >= 18
-- OneBot v11 / NapCat / Lagrange / QQBot 兼容实现
+BangDice 使用 YAML 模板系统，支持自定义回复格式。模板文件位于 `roles/text-template.yaml`。
+
+## 技术架构
+
+- **语言**: JavaScript (ES6+)
+- **运行环境**: Node.js >= 18
+- **协议**: OneBot v11 / NapCat / Lagrange / QQBot 兼容实现
+- **通信**: WebSocket 连接
 
 ## 文件结构
 
 ```
 BangDice/
-├─ src/
-│  ├─ core/
-│  │  ├─ index.js
-│  │  ├─ coc.js
-│  │  ├─ dice.js
-│  │  ├─ plugin-loader.js
-│  │  └─ seal-shim.js
-│  ├─ utils/
-│  │  └─ templates.js
-│  └─ web/
-│     ├─ index.html
-│     ├─ style.css
-│     ├─ script.js
-│     ├─ favicon.ico
-│     └─ favicon.svg
+├─ data/
+│  ├─ dice.js      # 骰子表达式解析
+│  ├─ coc.js       # COC7 规则检定
+│  ├─ plugin-loader.js # 插件加载器
+│  └─ seal-shim.js # SealDice 兼容层
 ├─ roles/
-├─ logs/
-├─ config.json
-├─ package.json
-└─ README.md
+│  ├─ players.json # 玩家数据
+│  ├─ playerNames.json # 玩家昵称
+│  ├─ text-template.yaml # 模板文件
+│  ├─ log-exports/ # 日志导出目录
+│  └─ Plugins/     # 插件目录
+├─ logs/           # 日志目录
+│  └─ YYYY-MM-DD.log
+├─ src/
+│  ├─ core/        # 核心功能
+│  ├─ utils/       # 工具函数
+│  └─ web/         # WebUI
+├─ webui/          # Web管理界面
+├─ index.js        # 主程序
+├─ config.json     # 配置文件
+└─ README.md       # 项目说明
 ```
 
-## WebUI 管理界面
+## 运行与部署
 
-BangDice 提供了一个现代化的 WebUI 管理界面，可通过浏览器访问。界面具有 BanG Dream! 风格设计，启动后访问 `http://localhost:4412` 即可使用。
-
-## 自定义扩展
-
-新增：
+首次运行时，程序会自动配置 WebSocket 连接参数：
 
 ```
-roles/Plugins/
+node index.js
 ```
 
-放入脚本即可自动加载。
+程序会提示输入 OneBot WebSocket 地址和 Access-Token。
 
-## 免责声明
+## 插件系统
 
-BangDice 与 BanG Dream! 系列无商业关联，仅供个人跑团使用。
+BangDice 支持插件扩展，位于 `roles/Plugins/` 目录。系统提供 SealDice 兼容 API，支持动态加载和热重载。
+
+## 依赖
+
+- `js-yaml`: YAML 文件处理
+- `ws`: WebSocket 客户端
+- `socket.io`: 实时通信
+
+## 开发约定
+
+- 所有命令以 `.` 开头
+- 使用 WebSocket 与 OneBot 兼容的机器人框架通信
+- 日志按日期分文件存储
+- 插件系统兼容 SealDice 插件格式
+- 模板系统使用 `{t变量名}` 占位符格式

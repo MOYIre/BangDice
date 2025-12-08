@@ -78,6 +78,9 @@ export default function loadPlugins(bot, send, ws) {
     if (!text.startsWith(".")) return false;
 
     const stripped = text.slice(1).trim();
+    
+    // 收集所有匹配的命令，按长度排序（长的在前，更具体）
+    const allCommands = [];
     for (const ext of extList) {
       for (const key of Object.keys(ext.cmdMap || {})) {
         if (stripped.startsWith(key)) {
@@ -88,28 +91,40 @@ export default function loadPlugins(bot, send, ws) {
             continue; // 插件被禁用，跳过此插件，尝试下一个
           }
           
-          const cmd = ext.cmdMap[key];
-          const argv = { args: stripped.slice(key.length).trim().split(/\s+/) };
-          const ctx = {
-            send: (msg) => send(ws, e.group_id, msg),
-            group_id: e.group_id,
-            user_id: e.user_id,
-            msg: e
-          };
-          try { 
-            const result = cmd.solve(ctx, e, argv);
-            // 如果命令被处理（solve函数返回的不是false），返回true
-            if (result !== false) {
-              return true;
-            }
-          }
-          catch (err) { 
-            console.error("插件执行错误:", key, err.message || err); 
-            console.error("错误堆栈:", err.stack);
-          }
+          allCommands.push({
+            ext,
+            key,
+            cmd: ext.cmdMap[key]
+          });
         }
       }
     }
+    
+    // 按命令键长度排序，长的优先（更具体的命令优先）
+    allCommands.sort((a, b) => b.key.length - a.key.length);
+    
+    for (const { ext, key, cmd } of allCommands) {
+      const argv = { args: stripped.slice(key.length).trim().split(/\s+/) };
+      const ctx = {
+        send: (msg) => send(ws, e.group_id, msg),
+        group_id: e.group_id,
+        user_id: e.user_id,
+        msg: e,
+        ws: ws  // 添加ws连接以支持文件上传
+      };
+      try { 
+        const result = cmd.solve(ctx, e, argv);
+        // 如果命令被处理（solve函数返回的不是false），返回true
+        if (result !== false) {
+          return true;
+        }
+      }
+      catch (err) { 
+        console.error("插件执行错误:", key, err.message || err); 
+        console.error("错误堆栈:", err.stack);
+      }
+    }
+    
     return false;
   };
 

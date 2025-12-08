@@ -25,12 +25,13 @@ build/*
 # 临时/旧文件
 old/
 
-# IFLOW
+API.md
 IFLOW.md
 iflow-src/
 
 # 插件（只排除数据文件，保留插件代码）
 roles/Plugins/storage/
+roles/*.json
 !roles/Plugins/*.js
 !roles/Plugins/*.ts
 !roles/Plugins/*.py

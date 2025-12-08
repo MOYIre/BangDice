@@ -25,6 +25,7 @@ export function renderKey(templates, key, ctx={}) {
   const tplRoot = templates?.COC || templates;
   const entry = tplRoot?.[key]; if(!entry) return "";
   let tpl = pickOne(entry); if(!tpl) return "";
-  return tpl.replace(/\{\$t([^\}]+)\}/g, (_,v)=>ctx[v]??"")
-            .replace(/\{\$([^\}]+)\}/g, (_,v)=>ctx[v]??"");
+  return tpl.replace(/\{\$t([^\}]+)\}/g, (_,v)=>ctx['t'+v]??"")
+            .replace(/\{\$([^\}]+)\}/g, (_,v)=>ctx[v]??"")
+            .replace(/\{t([^\}]+)\}/g, (_,v)=>ctx['t'+v]??"");
 }
