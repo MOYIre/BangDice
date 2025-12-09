@@ -2,7 +2,7 @@
 // @name       食灵
 // @author      御铭茗
 // @version     2.1.0
-// @description 不知道吃什么问问饭笥大人吧～
+// @description 不知道吃什么问问若麦吧～
 // @license     Apache-2
 // ==/UserScript==
 
@@ -19,7 +19,7 @@ const defaultMenus = {
   midnight: ["泡面","炸串","烧烤","凉皮","烤冷面","煎饺","关东煮","炒河粉","鸡翅","煎蛋炒饭"]
 };
 
-const masters = ["铭茗","猫掌柜"];
+const masters = ["铭茗","若麦"];
 const periodMap = {"早餐":"breakfast","早上":"breakfast","中午":"lunch","午餐":"lunch","晚上":"dinner","晚餐":"dinner","夜宵":"midnight"};
 const periodNames = {breakfast:"早餐", lunch:"午餐", dinner:"晚餐", midnight:"夜宵"};
 let extraPool = [];
@@ -37,7 +37,7 @@ const saveMenus = m => ext.storageSet("menus", JSON.stringify(m));
 const loadHistory = () => { try { const s = ext.storageGet("history"); return s ? JSON.parse(s) : { breakfast:[], lunch:[], dinner:[], midnight:[] }; } catch { return { breakfast:[], lunch:[], dinner:[], midnight:[] }; } };
 const saveHistory = h => ext.storageSet("history", JSON.stringify(h));
 
-const getPeriod = h => h>=5&&h<11?"breakfast":h<16?"lunch":h<22?"dinner":"midnight";
+const getPeriod = h => h>=5&&h<11?"breakfast":h>=11&&h<16?"lunch":h>=16&&h<22?"dinner":"midnight";
 
 const randomFoodNoRepeat = (list, period) => {
   const hist = loadHistory();
@@ -105,9 +105,9 @@ cmd.help = `
 显示本帮助  
 -----------------------------------------
 .食灵/饭笥 吃什么  
-根据时间推荐  
+让若麦根据时间推荐  
 .食灵/饭笥 [早餐/中午/晚上/夜宵]吃什么  
-推荐指定时段  
+让若麦推荐指定时段  
 -----------------------------------------
 .食灵 加菜 [时段] 菜名1 [菜名2 ...]  
 不指定时段则加到通用池  
@@ -117,7 +117,7 @@ cmd.help = `
 .食灵 菜单  
 查看当前菜单  
 .食灵/饭笥 随机菜单  
-生成随机菜单  
+让若麦生成随机菜单  
 .食灵 重置菜单  
 重置所有菜单  
 `;

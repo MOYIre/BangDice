@@ -3,9 +3,13 @@ config.js
 config.json
 test-config.json
 
+node_modules/
+
 # 日志文件
 logs/
 *.log
+
+dist/
 
 # 用户数据文件
 roles/players.json
@@ -18,10 +22,7 @@ src/roles/Plugins/storage/
 test-sync/
 
 # 构建产物
-build/*
-!build/铭茗编译助手.sh
-!build/铭茗编译助手.bat
-
+build/
 # 临时/旧文件
 old/
 

@@ -63,7 +63,6 @@ function setData(key, data) {
 cmd.name = '计时'
 cmd.help = `
 .计时 / .time   恶楼计时器
-这可是老娘费了好大劲才刷到的恶楼
 指令：
   .计时                          查看起始时间/累计时间/当前团内时间
   .计时 设置 XXXX年X月XX日XX点   设定起始时间
