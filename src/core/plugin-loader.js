@@ -41,27 +41,23 @@ export default function loadPlugins(bot, send, ws) {
         if (!ext || !ext.cmdMap) continue;
 
         const names = Object.keys(ext.cmdMap);
-        let help = "";
-        for (const n of names) {
-          const c = ext.cmdMap[n];
-          if (c && c.help) { help = c.help.trim(); break; }
-        }
-        
         const pluginName = path.basename(file, '.js');
         // 设置插件文件名到扩展对象，以便dispatchPlugin可以使用
         ext.pluginFile = pluginName;
         
-        // 添加命令到插件文件名的映射
+        // 添加命令到插件文件名的映射，并为每个命令单独存储帮助信息
         for (const name of names) {
           globalThis.commandToPluginMap.set(name, pluginName);
+          
+          // 为每个命令单独添加到pluginCmdTable
+          const cmdHelp = ext.cmdMap[name] && ext.cmdMap[name].help ? ext.cmdMap[name].help.trim() : "无帮助信息";
+          pluginCmdTable.push({ names: [name], help: cmdHelp, file: pluginName });
         }
         
         // 同时在pluginStatus中初始化插件状态（如果尚未初始化）
         if (!pluginStatus.has(pluginName)) {
           pluginStatus.set(pluginName, true); // 默认启用
         }
-        
-        pluginCmdTable.push({ names, help, file: pluginName });
       } catch (err) {
         console.error("插件加载失败:", file, err);
       }

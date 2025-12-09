@@ -1332,7 +1332,8 @@ const ext = globalThis.seal.ext.new('coc7', '铭茗', '1.0.0');
 // 设置.st命令
 const stCmd = ext.cmdMap['st'] = globalThis.seal.ext.newCmdItemInfo();
 stCmd.name = 'st';
-stCmd.help = '设置属性，格式: .st 力量60 敏捷50';
+stCmd.help = `.st 力量60 敏捷50 // 设置属性
+输入 .help coc 查看所有COC7命令`;
 stCmd.solve = (ctx, e, argv) => {
   try {
     stCommand(ctx, e, argv);
@@ -1347,7 +1348,8 @@ stCmd.solve = (ctx, e, argv) => {
 // 设置.stshow命令
 const stshowCmd = ext.cmdMap['stshow'] = globalThis.seal.ext.newCmdItemInfo();
 stshowCmd.name = 'stshow';
-stshowCmd.help = '显示属性，格式: .stshow';
+stshowCmd.help = `.stshow // 显示属性
+输入 .help coc 查看所有COC7命令`;
 stshowCmd.solve = (ctx, e, argv) => {
   try {
     stshowCommand(ctx, e, argv);
@@ -1362,7 +1364,8 @@ stshowCmd.solve = (ctx, e, argv) => {
 // 设置.ra命令
 const raCmd = ext.cmdMap['ra'] = globalThis.seal.ext.newCmdItemInfo();
 raCmd.name = 'ra';
-raCmd.help = '属性检定，格式: .ra 力量 或 .ra 困难力量';
+raCmd.help = `.ra 力量 或 .ra 困难力量 // 属性检定
+输入 .help coc 查看所有COC7命令`;
 raCmd.solve = (ctx, e, argv) => {
   try {
     raCommand(ctx, e, argv);
@@ -1377,7 +1380,8 @@ raCmd.solve = (ctx, e, argv) => {
 // 设置.en命令
 const enCmd = ext.cmdMap['en'] = globalThis.seal.ext.newCmdItemInfo();
 enCmd.name = 'en';
-enCmd.help = '技能成长，格式: .en 侦查';
+enCmd.help = `.en 侦查 // 技能成长
+输入 .help coc 查看所有COC7命令`;
 enCmd.solve = (ctx, e, argv) => {
   try {
     enCommand(ctx, e, argv);
@@ -1392,7 +1396,8 @@ enCmd.solve = (ctx, e, argv) => {
 // 设置.nn命令
 const nnCmd = ext.cmdMap['nn'] = globalThis.seal.ext.newCmdItemInfo();
 nnCmd.name = 'nn';
-nnCmd.help = '设置昵称，格式: .nn 昵称';
+nnCmd.help = `.nn 昵称 // 设置昵称
+输入 .help coc 查看所有COC7命令`;
 nnCmd.solve = (ctx, e, argv) => {
   try {
     nnCommand(ctx, e, argv);
@@ -1407,7 +1412,8 @@ nnCmd.solve = (ctx, e, argv) => {
 // 设置.log命令
 const logCmd = ext.cmdMap['log'] = globalThis.seal.ext.newCmdItemInfo();
 logCmd.name = 'log';
-logCmd.help = '跑团日志，格式: .log list/.log stat/.log export';
+logCmd.help = `.log list/.log stat/.log export // 跑团日志
+输入 .help coc 查看所有COC7命令`;
 logCmd.solve = (ctx, e, argv) => {
   try {
     logCommand(ctx, e, argv);
@@ -1422,7 +1428,8 @@ logCmd.solve = (ctx, e, argv) => {
 // 设置.setcoc命令
 const setCocCmd = ext.cmdMap['setcoc'] = globalThis.seal.ext.newCmdItemInfo();
 setCocCmd.name = 'setcoc';
-setCocCmd.help = '设置房规，格式: .setcoc 0-5 或 .setcoc dg';
+setCocCmd.help = `.setcoc 0-5 或 .setcoc dg // 设置房规
+输入 .help coc 查看所有COC7命令`;
 setCocCmd.solve = (ctx, e, argv) => {
   try {
     setcocCommand(ctx, e, argv);
@@ -1437,7 +1444,8 @@ setCocCmd.solve = (ctx, e, argv) => {
 // 设置.rav命令
 const ravCmd = ext.cmdMap['rav'] = globalThis.seal.ext.newCmdItemInfo();
 ravCmd.name = 'rav';
-ravCmd.help = '对抗检定，格式: .rav <技能> @某人';
+ravCmd.help = `.rav <技能> @某人 // 对抗检定
+输入 .help coc 查看所有COC7命令`;
 ravCmd.solve = (ctx, e, argv) => {
   try {
     ravCommand(ctx, e, argv);
@@ -1452,7 +1460,8 @@ ravCmd.solve = (ctx, e, argv) => {
 // 设置.sc命令
 const scCmd = ext.cmdMap['sc'] = globalThis.seal.ext.newCmdItemInfo();
 scCmd.name = 'sc';
-scCmd.help = '理智检定，格式: .sc <成功时掉san>/<失败时掉san>';
+scCmd.help = `.sc <成功时掉san>/<失败时掉san> // 理智检定
+输入 .help coc 查看所有COC7命令`;
 scCmd.solve = (ctx, e, argv) => {
   try {
     scCommand(ctx, e, argv);
@@ -1467,7 +1476,8 @@ scCmd.solve = (ctx, e, argv) => {
 // 设置.ti命令
 const tiCmd = ext.cmdMap['ti'] = globalThis.seal.ext.newCmdItemInfo();
 tiCmd.name = 'ti';
-tiCmd.help = '临时性疯狂症状，格式: .ti';
+tiCmd.help = `.ti // 临时性疯狂症状
+输入 .help coc 查看所有COC7命令`;
 tiCmd.solve = (ctx, e, argv) => {
   try {
     tiCommand(ctx, e, argv);
@@ -1482,7 +1492,8 @@ tiCmd.solve = (ctx, e, argv) => {
 // 设置.li命令
 const liCmd = ext.cmdMap['li'] = globalThis.seal.ext.newCmdItemInfo();
 liCmd.name = 'li';
-liCmd.help = '总结性疯狂症状，格式: .li';
+liCmd.help = `.li // 总结性疯狂症状
+输入 .help coc 查看所有COC7命令`;
 liCmd.solve = (ctx, e, argv) => {
   try {
     liCommand(ctx, e, argv);
@@ -1497,7 +1508,26 @@ liCmd.solve = (ctx, e, argv) => {
 // 设置.coc命令
 const cocCmd = ext.cmdMap['coc'] = globalThis.seal.ext.newCmdItemInfo();
 cocCmd.name = 'coc';
-cocCmd.help = 'COC制卡，格式: .coc [<数量>]';
+cocCmd.help = `COC7 规则命令帮助:
+.coc [<数量>] // 制卡指令，返回<数量>组人物属性（带称号）
+.nn 昵称 // 设置角色昵称
+.st 力量60 敏捷50 // 设置属性
+.stshow // 显示当前角色属性
+.ra 力量 // 对属性发起检定
+.ra 困难侦查 // 困难检定
+.ra 图书馆+10 // 技能检定（支持加值）
+.rav <技能> @某人 // 抗对抗检定
+.sc <成功时掉san>/<失败时掉san> // 理智检定
+.sc <失败时掉san> // 简易理智检定
+.ti // 抽取一个临时性疯狂症状
+.li // 抽取一个总结性疯狂症状
+.setcoc 0-5 // 设置常见的0-5房规，0为规则书，2为国内常用规则
+.setcoc dg // delta green 扩展规则
+.en 侦查 // 技能成长检定
+.log list // 查看日志列表
+.log stat [<日志名>] // 查看统计
+.log export <日志名> // 导出日志
+.r 1d6 // 骰子指令`;
 cocCmd.solve = (ctx, e, argv) => {
   try {
     cocCommand(ctx, e, argv);

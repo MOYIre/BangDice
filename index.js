@@ -390,14 +390,17 @@ ws.on("message", raw => {
     if (name) {
       let helpText = "未找到此插件指令";
       for (const p of pluginCmdTable) {
-        if (p.names.includes(name)) helpText = p.help || "无帮助信息";
+        if (p.names.includes(name)) {
+          helpText = p.help || "无帮助信息";
+          break;
+        }
       }
       return sendGroupMsg(ws, e.group_id, helpText);
     }
 
     const commands = pluginCmdTable.map(p => {
-      const coc = ['coc','st','ra','nn','rav','sc','ti','li','setcoc','en'];
-      if (p.names.some(x => coc.includes(x))) return 'coc';
+      // 将COC相关命令归类为'coc'，但保持各自的帮助查询功能
+      if (p.names.some(x => ['coc','st','ra','nn','rav','sc','ti','li','setcoc','en','stshow','log'].includes(x))) return 'coc';
       if (p.names.some(x => x.includes("开团"))) return '开团';
       if (p.names.includes('r')) return 'r';
       if (p.names.some(x => x.includes('网易云'))) return '网易云';
