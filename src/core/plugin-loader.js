@@ -41,22 +41,38 @@ export default function loadPlugins(bot, send, ws) {
         if (!ext || !ext.cmdMap) continue;
 
         const names = Object.keys(ext.cmdMap);
-        const pluginName = path.basename(file, '.js');
+        const pluginFile = path.basename(file, '.js');
         // 设置插件文件名到扩展对象，以便dispatchPlugin可以使用
-        ext.pluginFile = pluginName;
+        ext.pluginFile = pluginFile;
         
-        // 添加命令到插件文件名的映射，并为每个命令单独存储帮助信息
+        // 添加命令到插件文件名的映射
         for (const name of names) {
-          globalThis.commandToPluginMap.set(name, pluginName);
-          
-          // 为每个命令单独添加到pluginCmdTable
-          const cmdHelp = ext.cmdMap[name] && ext.cmdMap[name].help ? ext.cmdMap[name].help.trim() : "无帮助信息";
-          pluginCmdTable.push({ names: [name], help: cmdHelp, file: pluginName });
+          globalThis.commandToPluginMap.set(name, pluginFile);
         }
         
+        // 存储插件整体信息，而不是每个命令单独存储
+        // 获取插件的名称（如果ext有name属性）或使用文件名
+        const pluginDisplayName = ext.name || pluginFile;
+        let firstCmdHelp = "无帮助信息";
+        for (const name of names) {
+          if (ext.cmdMap[name] && ext.cmdMap[name].help) {
+            firstCmdHelp = ext.cmdMap[name].help.trim();
+            break;
+          }
+        }
+        
+        pluginCmdTable.push({ 
+          names, 
+          help: firstCmdHelp, 
+          file: pluginFile,
+          displayName: pluginDisplayName,  // 插件的显示名称
+          author: ext.author || '未知作者',
+          version: ext.version || '未知版本'
+        });
+        
         // 同时在pluginStatus中初始化插件状态（如果尚未初始化）
-        if (!pluginStatus.has(pluginName)) {
-          pluginStatus.set(pluginName, true); // 默认启用
+        if (!pluginStatus.has(pluginFile)) {
+          pluginStatus.set(pluginFile, true); // 默认启用
         }
       } catch (err) {
         console.error("插件加载失败:", file, err);

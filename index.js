@@ -81,21 +81,25 @@ function getPluginList() {
     const isEnabled = pluginStatus.has(pluginFile) ? pluginStatus.get(pluginFile) : true;
 
     return {
-      name: p.names[0],
+      name: p.displayName || p.file || p.names[0],  // 使用插件显示名称
       command: p.names[0],
       description: p.help || '暂无描述',
-      author: '铭茗',
+      author: p.author || '铭茗',
       enabled: isEnabled
     };
   });
 
-  plugins.push({
-    name: 'log',
-    command: 'log',
-    description: '跑团日志记录功能',
-    author: '铭茗',
-    enabled: pluginStatus.get("log") ?? true
-  });
+  // 添加log插件信息（如果不存在于pluginCmdTable中）
+  const hasLogPlugin = pluginCmdTable.some(p => p.names.includes('log'));
+  if (!hasLogPlugin) {
+    plugins.push({
+      name: 'log',
+      command: 'log',
+      description: '跑团日志记录功能',
+      author: '铭茗',
+      enabled: pluginStatus.get("log") ?? true
+    });
+  }
 
   return plugins;
 }
@@ -389,12 +393,15 @@ ws.on("message", raw => {
     const name = text.slice(5).trim();
     if (name) {
       let helpText = "未找到此插件指令";
+      
+      // 首先尝试查找特定命令的帮助
       for (const p of pluginCmdTable) {
         if (p.names.includes(name)) {
           helpText = p.help || "无帮助信息";
           break;
         }
       }
+      
       return sendGroupMsg(ws, e.group_id, helpText);
     }
 

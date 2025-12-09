@@ -5,7 +5,7 @@
 // @description 网易云点歌，返回能直接播放的音乐卡片，可用".网易云 <歌名 (作者)>"
 // ==/UserScript==
 if (!seal.ext.find("music")) {
-  const ext = seal.ext.new("鬼灵歌伎", "原作星尘（铭茗换源）", "1.0.3");
+  const ext = seal.ext.new("鬼灵歌伎", "铭茗", "1.0.3");
 
   // 网易云点歌命令
   const cmdCloudMusic = seal.ext.newCmdItemInfo();
