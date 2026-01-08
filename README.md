@@ -1,6 +1,6 @@
 # BangDice
 
-BangDice 是一个面向跑团玩家的 **COC7 骰娘 / 探索型 Bot**，主题为 BanG Dream! 系列中的 Morfonica（モルフォニカ / Mujica）风格。该项目专注于 COC7 规则，支持人物作成、属性管理、检定、技能检定与纯骰功能。
+BangDice 是由GLM和qwen共同编写的实验项目，人类代码占比极少，是对ai编程学习的程序，在发布release之前不要投入使用，谢谢。
 
 ## 功能特色
 
