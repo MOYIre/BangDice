@@ -2,6 +2,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     const socket = io();
     
+    // XSS 防护：HTML转义函数
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+    
     // DOM 元素
     const tabs = document.querySelectorAll('.tab-content');
     const navButtons = document.querySelectorAll('.nav-btn');
@@ -177,9 +185,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const prefix = data.isSent ? '[发送] ' : '[接收] ';
         
         logEntry.innerHTML = `
-            <span class="timestamp">[${timestamp}]</span>
-            ${data.groupId ? `<span class="group-id">${data.groupId}</span> ` : ''}
-            ${prefix}${data.content}
+            <span class="timestamp">[${escapeHtml(timestamp)}]</span>
+            ${data.groupId ? `<span class="group-id">${escapeHtml(data.groupId)}</span> ` : ''}
+            ${escapeHtml(prefix)}${escapeHtml(data.content)}
         `;
         
         logsContainer.appendChild(logEntry);
@@ -228,20 +236,20 @@ document.addEventListener('DOMContentLoaded', function() {
         plugins.forEach(plugin => {
             const pluginCard = document.createElement('div');
             pluginCard.className = 'plugin-card';
-            pluginCard.setAttribute('data-plugin', plugin.name);
+            pluginCard.setAttribute('data-plugin', escapeHtml(plugin.name));
             
             pluginCard.innerHTML = `
                 <div class="plugin-header">
-                    <h4>${plugin.name} (${plugin.command || '无命令'})</h4>
+                    <h4>${escapeHtml(plugin.name)} (${escapeHtml(plugin.command || '无命令')})</h4>
                     <span class="plugin-status ${plugin.enabled ? 'active' : 'inactive'}">
                         ${plugin.enabled ? '已启用' : '已禁用'}
                     </span>
                 </div>
-                <p class="plugin-author">作者: ${plugin.author || '未知'}</p>
-                <p class="plugin-desc">${plugin.description || '暂无描述'}</p>
+                <p class="plugin-author">作者: ${escapeHtml(plugin.author || '未知')}</p>
+                <p class="plugin-desc">${escapeHtml(plugin.description || '暂无描述')}</p>
                 <div class="plugin-actions">
                     <button class="btn-${plugin.enabled ? 'disable' : 'enable'}" 
-                            data-plugin="${plugin.name}" 
+                            data-plugin="${escapeHtml(plugin.name)}" 
                             data-action="${plugin.enabled ? 'disable' : 'enable'}">
                         ${plugin.enabled ? '禁用' : '启用'}
                     </button>
@@ -283,15 +291,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 显示角色基础信息
                 playerCard.innerHTML = `
-                    <h4>${playerData.name || '未命名角色'}</h4>
-                    <p><strong>群组:</strong> ${groupId}</p>
-                    <p><strong>用户:</strong> ${userId}</p>
+                    <h4>${escapeHtml(playerData.name || '未命名角色')}</h4>
+                    <p><strong>群组:</strong> ${escapeHtml(groupId)}</p>
+                    <p><strong>用户:</strong> ${escapeHtml(userId)}</p>
                     ${playerData.attrs ? `
                     <div class="player-stats">
                         ${Object.entries(playerData.attrs).slice(0, 4).map(([key, value]) => `
                             <div class="stat-item">
-                                <div class="stat-value">${value}</div>
-                                <div class="stat-label">${key}</div>
+                                <div class="stat-value">${escapeHtml(String(value))}</div>
+                                <div class="stat-label">${escapeHtml(key)}</div>
                             </div>
                         `).join('')}
                     </div>

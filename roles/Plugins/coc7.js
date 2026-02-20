@@ -1,72 +1,13 @@
 import { resultCheck, successRankToKey, calculateDamageBonus, calculateBuild, calculateHP, calculateMP, COC_RULES, getRandomFearSymptom, getRandomManiaSymptom, generateCOCCharacter, sanityCheck } from '../../src/core/coc.js';
 import { rollExpr } from '../../src/core/dice.js';
 import { renderKey, loadTemplates } from '../../src/utils/templates.js';
+import { attrAliases, getStandardAttrName } from '../../src/utils/attr-aliases.js';
 import gameLogRecorder from '../../src/core/game-logger.js';
 import fs from 'fs';
 import path from 'path';
 
 // COC7 规则的完整实现
 // 包含属性管理、检定系统、玩家系统等
-
-// 属性别名映射
-const attrAliases = {
-  // 运气/幸运相关
-  '运势': '幸运',
-  '运气': '幸运',
-  'luck': '幸运',
-  'LUCK': '幸运',
-  
-  // 力量相关
-  'str': '力量',
-  'STR': '力量',
-  
-  // 体质相关
-  'con': '体质',
-  'CON': '体质',
-  
-  // 体型相关
-  'siz': '体型',
-  'SIZ': '体型',
-  
-  // 敏捷相关
-  'dex': '敏捷',
-  'DEX': '敏捷',
-  
-  // 外貌相关
-  'app': '外貌',
-  'APP': '外貌',
-  
-  // 智力相关
-  'int': '智力',
-  'INT': '智力',
-  
-  // 意志相关
-  'pow': '意志',
-  'POW': '意志',
-  
-  // 教育相关
-  'edu': '教育',
-  'EDU': '教育',
-  
-  // 侦查相关
-  '侦察': '侦查',
-  '搜索': '侦查',
-  'investigation': '侦查',
-  'INV': '侦查',
-  
-  // 闪避相关
-  '躲避': '闪避',
-  'dodge': '闪避',
-  
-  // 其他常用别名
-  '生命': '生命值',
-  'hp': '生命值',
-  'HP': '生命值',
-  'san': '理智',
-  'SAN': '理智',
-  '克苏鲁': '克苏鲁神话',
-  'cm': '克苏鲁神话'
-};
 
 // 存储每个群组/用户的角色属性
 const attrDir = path.join(process.cwd(), 'roles');
@@ -93,7 +34,29 @@ if (fs.existsSync(nameFile)) {
   }
 }
 
+// 防抖保存机制，避免频繁写入磁盘
+let saveAttrsTimer = null;
+let saveNamesTimer = null;
+const SAVE_DEBOUNCE_MS = 500; // 防抖延迟
+
 function savePlayerAttrs() {
+  if (saveAttrsTimer) clearTimeout(saveAttrsTimer);
+  saveAttrsTimer = setTimeout(() => {
+    try {
+      fs.writeFileSync(attrFile, JSON.stringify(playerAttrs, null, 2), 'utf8');
+    } catch (e) {
+      console.error('保存玩家属性失败:', e.message);
+    }
+    saveAttrsTimer = null;
+  }, SAVE_DEBOUNCE_MS);
+}
+
+// 立即保存（用于关键操作）
+function savePlayerAttrsImmediate() {
+  if (saveAttrsTimer) {
+    clearTimeout(saveAttrsTimer);
+    saveAttrsTimer = null;
+  }
   try {
     fs.writeFileSync(attrFile, JSON.stringify(playerAttrs, null, 2), 'utf8');
   } catch (e) {
@@ -102,6 +65,23 @@ function savePlayerAttrs() {
 }
 
 function savePlayerNames() {
+  if (saveNamesTimer) clearTimeout(saveNamesTimer);
+  saveNamesTimer = setTimeout(() => {
+    try {
+      fs.writeFileSync(nameFile, JSON.stringify(playerNames, null, 2), 'utf8');
+    } catch (e) {
+      console.error('保存玩家昵称失败:', e.message);
+    }
+    saveNamesTimer = null;
+  }, SAVE_DEBOUNCE_MS);
+}
+
+// 立即保存昵称
+function savePlayerNamesImmediate() {
+  if (saveNamesTimer) {
+    clearTimeout(saveNamesTimer);
+    saveNamesTimer = null;
+  }
   try {
     fs.writeFileSync(nameFile, JSON.stringify(playerNames, null, 2), 'utf8');
   } catch (e) {

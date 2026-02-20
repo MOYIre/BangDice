@@ -44,4 +44,4 @@ roles/*.json
 !roles/Plugins/**/*.py
 !roles/Plugins/**/*.json
 !roles/Plugins/**/*.yaml
-!roles/Plugins/**/*.yml
+!roles/Plugins/**/*.yml.opencode/

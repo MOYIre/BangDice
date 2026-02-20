@@ -10,12 +10,20 @@ import loadPlugins, { pluginCmdTable, pluginStatus } from "./src/core/plugin-loa
 // --------------------- 常量配置 ---------------------
 const CONFIG = {
   MAX_MESSAGE_LENGTH: 2000,        // 最大消息长度
+  MAX_REQUEST_BODY: 10000,         // 最大请求体大小
   MAX_COMMAND_RATE: 10,            // 每分钟最大命令数
   COMMAND_COOLDOWN: 1000,          // 命令冷却时间(ms)
   WS_RECONNECT_DELAY: 3000,        // WebSocket重连延迟(ms)
   WS_MAX_RECONNECT_ATTEMPTS: 10,   // 最大重连尝试次数
   API_TOKEN_LENGTH: 32,            // API Token长度
   HEARTBEAT_INTERVAL: 30000,       // 心跳间隔(ms)
+  CONFIG_WATCH_DEBOUNCE: 1000,     // 配置文件监听防抖(ms)
+  DEFAULT_WEB_PORT: 4412,          // 默认Web端口
+  WEB_PORT_MIN: 4413,              // Web端口最小值
+  WEB_PORT_MAX: 4500,              // Web端口最大值
+  // 乐队模式配置
+  BAND_TIMEOUT: 30000,             // 演奏超时时间(ms)，超时自动交棒
+  BAND_QUEUE_MAX: 10,              // 每群最大排队人数
 };
 
 // --------------------- 基础目录 ---------------------
@@ -39,6 +47,67 @@ const commandCooldown = new Map();
 
 // API Token 存储
 let apiTokens = new Set();
+
+// --------------------- 乐队人格系统 ---------------------
+// BangDream 风格的人格列表
+const BAND_PERSONAS = [
+  { name: 'Sayo', emoji: '🎸', color: '💜', style: '冷静' },      // 羽泽鸫 - 吉他
+  { name: 'Rinko', emoji: '🎹', color: '💙', style: '温柔' },    // 白金燐子 - 键盘
+  { name: 'Lisa', emoji: '🌸', color: '💗', style: '元气' },     // 今井莉莎 - 贝斯
+  { name: 'Yukina', emoji: '🎤', color: '❄️', style: '凛然' },   // 友希那 - 主唱
+  { name: 'Ako', emoji: '🦋', color: '💜', style: '热血' },      // 宇田川亚子 - 鼓
+];
+
+// 每个群的乐队模式状态
+// bandMode: Map<groupId, { enabled: boolean, currentIndex: number }>
+const bandMode = new Map();
+
+// 群组是否启用乐队模式
+function isBandModeEnabled(groupId) {
+  const state = bandMode.get(groupId.toString());
+  return state ? state.enabled : false;
+}
+
+// 获取群组当前人格
+function getCurrentPersona(groupId) {
+  const gid = groupId.toString();
+  let state = bandMode.get(gid);
+  if (!state) {
+    state = { enabled: false, currentIndex: 0 };
+    bandMode.set(gid, state);
+  }
+  return BAND_PERSONAS[state.currentIndex % BAND_PERSONAS.length];
+}
+
+// 切换到下一个人格（演奏完成）
+function nextPersona(groupId) {
+  const gid = groupId.toString();
+  let state = bandMode.get(gid);
+  if (!state) {
+    state = { enabled: false, currentIndex: 0 };
+    bandMode.set(gid, state);
+  }
+  state.currentIndex = (state.currentIndex + 1) % BAND_PERSONAS.length;
+  return BAND_PERSONAS[state.currentIndex];
+}
+
+// 获取待机人格列表（排除当前）
+function getWaitingPersonas(groupId) {
+  const current = getCurrentPersona(groupId);
+  return BAND_PERSONAS.filter(p => p.name !== current.name);
+}
+
+// 切换乐队模式开关
+function toggleBandMode(groupId) {
+  const gid = groupId.toString();
+  let state = bandMode.get(gid);
+  if (!state) {
+    state = { enabled: false, currentIndex: 0 };
+    bandMode.set(gid, state);
+  }
+  state.enabled = !state.enabled;
+  return state.enabled;
+}
 
 // --------------------- 日志函数 ---------------------
 function log(msg, type = 'info') {
@@ -119,7 +188,7 @@ function watchConfig() {
     if (eventType === 'change') {
       // 防抖处理
       const now = Date.now();
-      if (now - lastModified < 1000) return;
+      if (now - lastModified < CONFIG.CONFIG_WATCH_DEBOUNCE) return;
       lastModified = now;
       
       try {
@@ -229,6 +298,9 @@ function connectWS(url = config.ws, token = config.token, notifySource = "系统
   ws.on("pong", () => {
     // 心跳响应
   });
+  
+  // 绑定消息处理器（在 ws 初始化后）
+  ws.on("message", handleWsMessage);
 }
 
 // --------------------- 插件列表函数 ---------------------
@@ -262,11 +334,18 @@ function getPluginList() {
 }
 
 // --------------------- 发送群消息 ---------------------
-function sendGroupMsg(ws, group_id, text) {
+function sendGroupMsg(ws, group_id, text, skipBandMode = false) {
   // 输入验证
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     log("WebSocket未连接，无法发送消息", 'error');
     return;
+  }
+  
+  // 乐队模式：添加人格前缀
+  let persona = null;
+  if (!skipBandMode && isBandModeEnabled(group_id)) {
+    persona = getCurrentPersona(group_id);
+    text = `${persona.emoji}${persona.name}: ${text}`;
   }
   
   // 消息长度限制
@@ -277,6 +356,12 @@ function sendGroupMsg(ws, group_id, text) {
   
   try {
     ws.send(JSON.stringify({ action: "send_group_msg", params: { group_id, message: text } }));
+    
+    // 乐队模式：发送后切换到下一个人格
+    if (persona) {
+      nextPersona(group_id);
+    }
+    
     if (ioRef) {
       ioRef.emit('message', {
         type: 'command',
@@ -376,7 +461,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // --------------------- Web 服务器启动 ---------------------
-let WEB_PORT = 4412;
+let WEB_PORT = CONFIG.DEFAULT_WEB_PORT;
 
 function startServer(port) {
   return new Promise((resolve, reject) => {
@@ -419,6 +504,29 @@ function startServer(port) {
       });
 
       socket.on('get_plugins', () => socket.emit('plugins_list', getPluginList()));
+      
+      // 乐队模式事件
+      socket.on('band_mode', (data) => {
+        // 注意：乐队模式是群组级别的，这里提供一个全局开关的简化版本
+        // 实际使用时应在群内使用 .band on/off 命令
+        if (data.action === 'status') {
+          socket.emit('band_status', {
+            enabled: false, // WebUI 不管理具体群的乐队模式
+            message: '请在群内使用 .band on/off 控制乐队模式'
+          });
+        }
+      });
+      
+      socket.on('band_status', () => {
+        socket.emit('band_status', {
+          personas: BAND_PERSONAS,
+          groups: Array.from(bandMode.entries()).map(([gid, state]) => ({
+            groupId: gid,
+            enabled: state.enabled,
+            currentIndex: state.currentIndex
+          }))
+        });
+      });
 
       socket.on('get_logs', () => {
         try {
@@ -478,9 +586,9 @@ async function startServerWithFallback() {
   } catch (err) {
     if (err.code !== 'EADDRINUSE') return log("服务器启动失败: " + err);
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const newPort = await new Promise(res => rl.question(`端口 ${WEB_PORT} 已被占用，请输入新端口号 (4413-4500): `, ans => res(Number(ans.trim()))));
+    const newPort = await new Promise(res => rl.question(`端口 ${WEB_PORT} 已被占用，请输入新端口号 (${CONFIG.WEB_PORT_MIN}-${CONFIG.WEB_PORT_MAX}): `, ans => res(Number(ans.trim()))));
     rl.close();
-    WEB_PORT = (newPort >= 4413 && newPort <= 4500) ? newPort : 4413;
+    WEB_PORT = (newPort >= CONFIG.WEB_PORT_MIN && newPort <= CONFIG.WEB_PORT_MAX) ? newPort : CONFIG.WEB_PORT_MIN;
     await startServer(WEB_PORT);
   }
 }
@@ -544,7 +652,7 @@ function handleAPIRequest(req, res) {
         let body = "";
         req.on("data", d => {
           body += d;
-          if (body.length > 10000) {
+          if (body.length > CONFIG.MAX_REQUEST_BODY) {
             reply(413, { error: "Request body too large" });
             req.destroy();
           }
@@ -571,7 +679,7 @@ function handleAPIRequest(req, res) {
         let body = "";
         req.on("data", d => {
           body += d;
-          if (body.length > 10000) {
+          if (body.length > CONFIG.MAX_REQUEST_BODY) {
             reply(413, { error: "Request body too large" });
             req.destroy();
           }
@@ -606,7 +714,7 @@ function handleAPIRequest(req, res) {
         let body = "";
         req.on("data", d => {
           body += d;
-          if (body.length > 10000) {
+          if (body.length > CONFIG.MAX_REQUEST_BODY) {
             reply(413, { error: "Request body too large" });
             req.destroy();
           }
@@ -638,7 +746,7 @@ function handleAPIRequest(req, res) {
         let body = "";
         req.on("data", d => {
           body += d;
-          if (body.length > 10000) {
+          if (body.length > CONFIG.MAX_REQUEST_BODY) {
             reply(413, { error: "Request body too large" });
             req.destroy();
           }
@@ -679,7 +787,7 @@ function handleAPIRequest(req, res) {
         let body = "";
         req.on("data", d => {
           body += d;
-          if (body.length > 10000) {
+          if (body.length > CONFIG.MAX_REQUEST_BODY) {
             reply(413, { error: "Request body too large" });
             req.destroy();
           }
@@ -720,11 +828,7 @@ function handleAPIRequest(req, res) {
 }
 
 // --------------------- 消息处理 ---------------------
-// 注意：消息处理在WebSocket连接后设置，需要重新绑定
-function setupMessageHandler() {
-  if (!ws) return;
-  
-  ws.on("message", raw => {
+function handleWsMessage(raw) {
     let e;
     try { 
       e = JSON.parse(raw.toString()); 
@@ -776,6 +880,54 @@ function setupMessageHandler() {
     text = text.replace(/^\.([a-zA-Z])(\d)/, ".\$1 \$2");
     text = text.replace(/^\.([^\s]+)/, (m,a)=>"." + a.toLowerCase());
 
+    // --------------------- 乐队模式命令 ---------------------
+    if (text.startsWith(".band")) {
+      const args = text.slice(5).trim().split(/\s+/);
+      const subCmd = args[0];
+      
+      if (subCmd === 'on' || subCmd === '开') {
+        const gid = e.group_id.toString();
+        let state = bandMode.get(gid);
+        if (!state) {
+          state = { enabled: false, currentIndex: 0 };
+          bandMode.set(gid, state);
+        }
+        state.enabled = true;
+        const persona = getCurrentPersona(e.group_id);
+        return sendGroupMsg(ws, e.group_id, 
+          `🎸 乐队模式已开启！\n当前演奏者: ${persona.emoji}${persona.name}\n使用 .band off 关闭`, true);
+      }
+      
+      if (subCmd === 'off' || subCmd === '关') {
+        const gid = e.group_id.toString();
+        let state = bandMode.get(gid);
+        if (state) state.enabled = false;
+        return sendGroupMsg(ws, e.group_id, "🎸 乐队模式已关闭，恢复正常回复", true);
+      }
+      
+      if (subCmd === 'status' || subCmd === '状态') {
+        const gid = e.group_id.toString();
+        const state = bandMode.get(gid);
+        if (!state || !state.enabled) {
+          return sendGroupMsg(ws, e.group_id, "🎸 乐队模式: 未开启", true);
+        }
+        const current = getCurrentPersona(e.group_id);
+        const waiting = getWaitingPersonas(e.group_id);
+        return sendGroupMsg(ws, e.group_id, 
+          `🎸 乐队模式: 已开启\n` +
+          `当前演奏: ${current.emoji}${current.name} (${current.style})\n` +
+          `待机成员: ${waiting.map(p => `${p.emoji}${p.name}`).join(' ')}`, true);
+      }
+      
+      // 默认显示帮助
+      return sendGroupMsg(ws, e.group_id, 
+        `🎸 乐队模式命令:\n` +
+        `.band on  - 开启乐队模式\n` +
+        `.band off - 关闭乐队模式\n` +
+        `.band status - 查看状态\n\n` +
+        `开启后，骰娘会轮流以不同人格回复！`, true);
+    }
+
     if (text.startsWith(".help")) {
       const name = text.slice(5).trim();
       if (name) {
@@ -816,11 +968,7 @@ function setupMessageHandler() {
     }
 
     bot.dispatchPlugin(text, e, ws, sendGroupMsg);
-  });
 }
-
-// 在连接后设置消息处理
-setupMessageHandler();
 
 // 启动配置热重载
 watchConfig();

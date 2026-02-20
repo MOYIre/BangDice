@@ -419,7 +419,7 @@
       <div v-show="activeTab === 'dashboard'" class="tab-content">
         <div class="grid">
           <div class="card">
-            <h3 class="card-title">连接状态</h3>
+            <h3 class="card-title">🎸 连接状态</h3>
             <div class="status-indicator">
               <span class="status-dot" :class="connectionStatus ? 'connected' : 'disconnected'"></span>
               <span>{{ connectionStatus ? '已连接' : '未连接' }}</span>
@@ -428,14 +428,49 @@
           </div>
 
           <div class="card">
-            <h3 class="card-title">服务器信息</h3>
+            <h3 class="card-title">📊 服务器信息</h3>
             <p>活跃群组: {{ stats.activeGroups }}</p>
             <p>活跃插件: {{ stats.activePlugins }}</p>
             <p>消息计数: {{ stats.messageCount }}</p>
           </div>
-        </div>
 
-        
+          <div class="card">
+            <h3 class="card-title">🎸 乐队模式</h3>
+            <div style="margin-bottom: 15px; padding: 12px; background: rgba(255, 200, 77, 0.15); border-radius: 8px; font-size: 0.9rem;">
+              💡 <strong>使用说明:</strong> 在群内发送 <code style="background: rgba(135, 101, 179, 0.2); padding: 2px 6px; border-radius: 4px;">.band on</code> 开启乐队模式
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <p style="font-weight: 600; margin-bottom: 8px;">乐队成员:</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span v-for="p in bandPersonas" :key="p.name" 
+                      style="background: linear-gradient(135deg, rgba(135, 101, 179, 0.2), rgba(255, 126, 179, 0.2)); padding: 6px 12px; border-radius: 20px; font-size: 0.9rem;">
+                  {{ p.emoji }} {{ p.name }} <span style="opacity: 0.7;">({{ p.style }})</span>
+                </span>
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+              <p style="font-weight: 600; margin-bottom: 8px;">已开启的群组:</p>
+              <div v-if="bandGroups.length === 0" style="color: #888; font-size: 0.9rem;">
+                暂无群组开启乐队模式
+              </div>
+              <div v-else style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <span v-for="g in bandGroups" :key="g.groupId" 
+                      style="background: rgba(72, 187, 120, 0.2); color: #2f7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem;">
+                  {{ g.groupId }} - {{ bandPersonas[g.currentIndex]?.emoji }}{{ bandPersonas[g.currentIndex]?.name }}
+                </span>
+              </div>
+            </div>
+            
+            <div style="font-size: 0.85rem; color: #666; border-top: 1px solid rgba(135, 101, 179, 0.1); padding-top: 10px;">
+              <p><strong>命令列表:</strong></p>
+              <p>• <code>.band on</code> - 开启</p>
+              <p>• <code>.band off</code> - 关闭</p>
+              <p>• <code>.band status</code> - 查看状态</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 插件管理选项卡 -->
@@ -519,6 +554,17 @@
             activePlugins: 0,
             messageCount: 0
           });
+          
+          // 乐队模式状态
+          const bandPersonas = ref([
+            { name: 'Sayo', emoji: '🎸', style: '冷静' },
+            { name: 'Rinko', emoji: '🎹', style: '温柔' },
+            { name: 'Lisa', emoji: '🌸', style: '元气' },
+            { name: 'Yukina', emoji: '🎤', style: '凛然' },
+            { name: 'Ako', emoji: '🦋', style: '热血' }
+          ]);
+          const bandGroups = ref([]);
+          
           const plugins = ref([]);
           // 本地插件状态覆盖，用于在后端未更新时保持用户操作的状态
           const localPluginStatus = ref(new Map());
@@ -554,9 +600,11 @@
               // 请求初始数据
               socket.emit('get_config');
               socket.emit('get_plugins');
+              socket.emit('band_status'); // 请求乐队模式状态
               // 定期获取状态更新
               setInterval(() => {
                 socket.emit('get_config'); // 更新配置
+                socket.emit('band_status'); // 更新乐队状态
               }, 5000); // 每5秒更新一次配置信息
             });
 
@@ -601,6 +649,16 @@
             socket.on('onebot_status_update', (data) => {
               if (data.connected !== undefined) {
                 connectionStatus.value = data.connected === true;
+              }
+            });
+            
+            // 监听乐队模式状态
+            socket.on('band_status', (data) => {
+              if (data.groups) {
+                bandGroups.value = data.groups;
+              }
+              if (data.personas) {
+                bandPersonas.value = data.personas;
               }
             });
             
@@ -794,6 +852,8 @@
             connectionStatus,
             config,
             stats,
+            bandPersonas,
+            bandGroups,
             plugins,
             logs,
             connectToServer,
